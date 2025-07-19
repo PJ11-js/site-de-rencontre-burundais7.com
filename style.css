@@ -1,0 +1,65 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: white;
+  color: #333;
+}
+
+header {
+  background-color: #c70039;
+  color: white;
+  padding: 10px 20px;
+}
+
+.barre-rouge h1 {
+  margin: 0;
+}
+
+nav {
+  background-color: #f2f2f2;
+  padding: 10px;
+  text-align: center;
+}
+
+nav a {
+  margin: 0 10px;
+  color: #c70039;
+  text-decoration: none;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+.hero-section {
+  text-align: center;
+  padding: 60px 20px;
+  background: #ffecec;
+  border-radius: 8px;
+  margin: 20px;
+}
+
+.cta-buttons {
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: bold;
+  margin: 5px;
+}
+
+.btn-primary {
+  background-color: #c70039;
+  color: white;
+}
+
+.btn-secondary {
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+}
