@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mon Profil</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="barre-rouge">
+      <h1>Mon Profil</h1>
+    </div>
+    <nav>
+      <a href="index.html">Accueil</a> |
+      <a href="decouverte.html">Découverte</a> |
+      <a href="matches.html">Matches</a> |
+      <a href="connexion.html">Déconnexion</a>
+    </nav>
+  </header>
+
+  <main style="text-align: center; padding: 50px;">
+    <h2>Bienvenue sur votre profil !</h2>
+    <p>Nom d'utilisateur : <span id="userEmail">Chargement...</span></p>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCncnRlcKPH_AATgGKGSRF4y-NB-qrytV0",
+      authDomain: "site-de-rencontre-burundais.firebaseapp.com",
+      projectId: "site-de-rencontre-burundais",
+      storageBucket: "site-de-rencontre-burundais.appspot.com",
+      messagingSenderId: "737249604208",
+      appId: "1:737249604208:web:be1b93908d82bfbacfbab5",
+      measurementId: "G-SDS4TEJLBL"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const userEmail = document.getElementById("userEmail");
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        userEmail.textContent = user.email;
+      } else {
+        userEmail.textContent = "Non connecté";
+      }
+    });
+  </script>
+
+</body>
+</html>
