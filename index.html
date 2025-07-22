@@ -74,8 +74,15 @@
       googleBtn.addEventListener("click", () => {
         signInWithPopup(auth, provider)
           .then((result) => {
-            alert("Connexion réussie avec Google !");
-            window.location.href = "profil.html";
+            const user = result.user;
+localStorage.setItem("user", JSON.stringify({
+  name: user.displayName,
+  email: user.email,
+  photo: user.photoURL,
+  uid: user.uid
+}));
+window.location.href = "profil.html";
+
           })
           .catch((error) => {
             alert("Erreur Google : " + error.message);
