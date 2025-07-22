@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Découverte</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="barre-rouge">
+      <h1>Découverte</h1>
+    </div>
+    <nav>
+      <a href="index.html">Accueil</a> |
+      <a href="matches.html">Matches</a> |
+      <a href="profil.html">Mon Profil</a>
+    </nav>
+  </header>
+
+  <main style="text-align: center; padding: 30px;">
+    <h2>Profils à découvrir</h2>
+    <div id="profil-container"></div>
+    <div style="margin-top: 20px;">
+      <button id="likeBtn" class="btn btn-primary">💖 Liker</button>
+      <button id="passBtn" class="btn btn-secondary">⏭ Passer</button>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCncnRlcKPH_AATgGKGSRF4y-NB-qrytV0",
+      authDomain: "site-de-rencontre-burundais.firebaseapp.com",
+      projectId: "site-de-rencontre-burundais",
+      storageBucket: "site-de-rencontre-burundais.appspot.com",
+      messagingSenderId: "737249604208",
+      appId: "1:737249604208:web:be1b93908d82bfbacfbab5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let profils = [];
+    let currentIndex = 0;
+    let currentUserId = "";
+
+    const container = document.getElementById("profil-container");
+
+    function afficherProfil(profil) {
+      container.innerHTML = `
+        <div style="border: 1px solid #ccc; padding: 20px; border-radius: 10px;">
+          <h3>${profil.name}</h3>
+          <p>Email : ${profil.email}</p>
+        </div>
+      `;
+    }
+
+    async function chargerProfils(utilisateur) {
+      currentUserId = utilisateur.uid;
+      const allUsers = await getDocs(collection(db, "users"));
+      profils = [];
+      allUsers.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.uid !== currentUserId) {
+          profils.push(data);
+        }
+      });
+      if (profils.length > 0) {
+        afficherProfil(profils[0]);
+      } else {
+        container.innerHTML = "<p>Aucun profil disponible.</p>";
+      }
+    }
+
+    document.getElementById("likeBtn").onclick = async () => {
+      const likedUser = profils[currentIndex];
+      const currentUserRef = doc(db, "users", currentUserId);
+      await updateDoc(currentUserRef, {
+        likes: arrayUnion(likedUser.uid)
+      });
+
+      // Vérifier s’il y a match
+      const likedUserRef = doc(db, "users", likedUser.uid);
+      const likedUserSnap = await getDoc(likedUserRef);
+      const likedUserData = likedUserSnap.data();
+
+      if (likedUserData.likes.includes(currentUserId)) {
+        // Match !
+        await updateDoc(currentUserRef, {
+          matches: arrayUnion(likedUser.uid)
+        });
+        await updateDoc(likedUserRef, {
+          matches: arrayUnion(currentUserId)
+        });
+        alert("🎉 Vous avez un match avec " + likedUser.name + " !");
+      }
+
+      passer();
+    };
+
+    function passer() {
+      currentIndex++;
+      if (currentIndex < profils.length) {
+        afficherProfil(profils[currentIndex]);
+      } else {
+        container.innerHTML = "<p>Plus de profils à découvrir.</p>";
+      }
+    }
+
+    document.getElementById("passBtn").onclick = passer;
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        chargerProfils(user);
+      } else {
+        window.location.href = "connexion.html";
+      }
+    });
+  </script>
+</body>
+</html>
