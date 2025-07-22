@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="barre-rouge">
+      <h1>Connexion</h1>
+    </div>
+    <nav>
+      <a href="index.html">Accueil</a> |
+      <a href="inscription.html">Créer un compte</a>
+    </nav>
+  </header>
+
+  <main style="text-align: center; padding: 40px;">
+    <h2>Se connecter</h2>
+    <form id="loginForm" style="max-width: 400px; margin: auto;">
+      <input type="email" id="email" placeholder="Email" required class="input-field"><br><br>
+      <input type="password" id="password" placeholder="Mot de passe" required class="input-field"><br><br>
+      <button type="submit" class="btn btn-primary">Connexion</button>
+    </form>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCncnRlcKPH_AATgGKGSRF4y-NB-qrytV0",
+      authDomain: "site-de-rencontre-burundais.firebaseapp.com",
+      projectId: "site-de-rencontre-burundais",
+      storageBucket: "site-de-rencontre-burundais.appspot.com",
+      messagingSenderId: "737249604208",
+      appId: "1:737249604208:web:be1b93908d82bfbacfbab5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "profil.html";
+      } catch (error) {
+        alert("Erreur de connexion : " + error.message);
+      }
+    });
+  </script>
+
+</body>
+</html>
