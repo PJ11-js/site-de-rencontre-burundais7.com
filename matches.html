@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mes Matches</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="barre-rouge">
+      <h1>Mes Matches</h1>
+    </div>
+    <nav>
+      <a href="index.html">Accueil</a> |
+      <a href="decouverte.html">Découverte</a> |
+      <a href="profil.html">Mon Profil</a>
+    </nav>
+  </header>
+
+  <main style="text-align: center; padding: 40px;">
+    <h2>Vos Matchs</h2>
+    <div id="matches-container"></div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCncnRlcKPH_AATgGKGSRF4y-NB-qrytV0",
+      authDomain: "site-de-rencontre-burundais.firebaseapp.com",
+      projectId: "site-de-rencontre-burundais",
+      storageBucket: "site-de-rencontre-burundais.appspot.com",
+      messagingSenderId: "737249604208",
+      appId: "1:737249604208:web:be1b93908d82bfbacfbab5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const container = document.getElementById("matches-container");
+
+    async function chargerMatches(user) {
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      const data = userSnap.data();
+
+      if (!data.matches || data.matches.length === 0) {
+        container.innerHTML = "<p>Aucun match pour le moment.</p>";
+        return;
+      }
+
+      container.innerHTML = "";
+      for (const matchId of data.matches) {
+        const matchRef = doc(db, "users", matchId);
+        const matchSnap = await getDoc(matchRef);
+        const matchData = matchSnap.data();
+        container.innerHTML += `
+          <div style="margin: 10px; padding: 10px; border: 1px solid #ccc;">
+            <strong>${matchData.name}</strong><br>
+            <span>${matchData.email}</span>
+          </div>
+        `;
+      }
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        chargerMatches(user);
+      } else {
+        window.location.href = "connexion.html";
+      }
+    });
+  </script>
+
+</body>
+</html>
