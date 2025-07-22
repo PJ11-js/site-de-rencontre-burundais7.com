@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Inscription</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="barre-rouge">
+      <h1>Inscription</h1>
+    </div>
+    <nav>
+      <a href="index.html">Accueil</a> |
+      <a href="connexion.html">Se connecter</a>
+    </nav>
+  </header>
+
+  <main style="text-align: center; padding: 40px;">
+    <h2>Créer un compte</h2>
+    <form id="signupForm" style="max-width: 400px; margin: auto;">
+      <input type="text" id="name" placeholder="Votre nom" required class="input-field"><br><br>
+      <input type="email" id="email" placeholder="Email" required class="input-field"><br><br>
+      <input type="password" id="password" placeholder="Mot de passe" required class="input-field"><br><br>
+      <button type="submit" class="btn btn-primary">S'inscrire</button>
+    </form>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCncnRlcKPH_AATgGKGSRF4y-NB-qrytV0",
+      authDomain: "site-de-rencontre-burundais.firebaseapp.com",
+      projectId: "site-de-rencontre-burundais",
+      storageBucket: "site-de-rencontre-burundais.appspot.com",
+      messagingSenderId: "737249604208",
+      appId: "1:737249604208:web:be1b93908d82bfbacfbab5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const form = document.getElementById("signupForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        await updateProfile(user, { displayName: name });
+
+        // Enregistrer les infos utilisateur dans Firestore
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          name: name,
+          email: email,
+          likes: [],
+          matches: []
+        });
+
+        alert("Compte créé avec succès !");
+        window.location.href = "profil.html";
+
+      } catch (error) {
+        alert("Erreur : " + error.message);
+      }
+    });
+  </script>
+
+</body>
+</html>
