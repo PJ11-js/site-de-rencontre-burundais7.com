@@ -3,76 +3,111 @@
 <head>
   <meta charset="UTF-8">
   <title>Mon Profil</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />      
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css">
+  <style>
+    .profil-container {
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 20px;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .profil-container img {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 50%;
+      margin-bottom: 15px;
+    }
+
+    .profil-container input, .profil-container textarea {
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .profil-container button {
+      background-color: #c70039;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 
-  <header>
-    <div class="barre-rouge">
-      <h1>Mon Profil</h1>
-    </div>
-    <nav>
-      <a href="index.html">Accueil</a> |
-      <a href="decouverte.html">Découverte</a> |
-      <a href="matches.html">Matches</a> |
-      <a href="#" id="logout">Déconnexion</a>
-    </nav>
-  </header>
+<header>
+  <div class="barre-rouge">
+    <h1>Mon Profil</h1>
+  </div>
+</header>
 
-  <main style="text-align: center; padding: 50px;">
-    <h2>Bienvenue sur votre profil !</h2>
-    <img id="userPhoto" src="" alt="Photo de profil" style="width:120px;height:120px;border-radius:50%;display:none;margin:20px auto;" />
-    <p>Nom : <span id="userName">Chargement...</span></p>
-    <p>Email : <span id="userEmail">Chargement...</span></p>
-    <p>ID Utilisateur : <span id="userUID">Chargement...</span></p>
-  </main>
+<main class="profil-container">
+  <img id="profilePic" src="https://via.placeholder.com/150" alt="Photo de profil">
+  <input type="text" id="fullName" placeholder="Nom complet" />
+  <input type="text" id="location" placeholder="Ville/Pays" />
+  <textarea id="bio" placeholder="À propos de moi..."></textarea>
+  <button id="saveBtn">Sauvegarder</button>
+  <p style="margin-top: 15px;">Email : <span id="email">Chargement...</span></p>
+</main>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCncnRlcKPH_AATgGKGSRF4y-NB-qrytV0",
-      authDomain: "site-de-rencontre-burundais.firebaseapp.com",
-      projectId: "site-de-rencontre-burundais",
-      storageBucket: "site-de-rencontre-burundais.appspot.com",
-      messagingSenderId: "737249604208",
-      appId: "1:737249604208:web:be1b93908d82bfbacfbab5",
-      measurementId: "G-SDS4TEJLBL"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCncnRlcKPH_AATgGKGSRF4y-NB-qrytV0",
+    authDomain: "site-de-rencontre-burundais.firebaseapp.com",
+    projectId: "site-de-rencontre-burundais",
+    storageBucket: "site-de-rencontre-burundais.appspot.com",
+    messagingSenderId: "737249604208",
+    appId: "1:737249604208:web:be1b93908d82bfbacfbab5"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    const userName = document.getElementById("userName");
-    const userEmail = document.getElementById("userEmail");
-    const userUID = document.getElementById("userUID");
-    const userPhoto = document.getElementById("userPhoto");
-    const logoutBtn = document.getElementById("logout");
+  const emailSpan = document.getElementById("email");
+  const fullName = document.getElementById("fullName");
+  const location = document.getElementById("location");
+  const bio = document.getElementById("bio");
+  const saveBtn = document.getElementById("saveBtn");
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        userName.textContent = user.displayName || "Non défini";
-        userEmail.textContent = user.email;
-        userUID.textContent = user.uid;
-
-        if (user.photoURL) {
-          userPhoto.src = user.photoURL;
-          userPhoto.style.display = "block";
-        }
-      } else {
-        window.location.href = "connexion.html"; // Redirection si pas connecté
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      emailSpan.textContent = user.email;
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        fullName.value = data.name || "";
+        location.value = data.location || "";
+        bio.value = data.bio || "";
       }
-    });
 
-    logoutBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      signOut(auth).then(() => {
-        window.location.href = "connexion.html";
+      saveBtn.addEventListener("click", async () => {
+        await setDoc(docRef, {
+          name: fullName.value,
+          location: location.value,
+          bio: bio.value
+        });
+        alert("Profil mis à jour !");
       });
-    });
-  </script>
+    } else {
+      window.location.href = "connexion.html";
+    }
+  });
+</script>
 
 </body>
 </html>
