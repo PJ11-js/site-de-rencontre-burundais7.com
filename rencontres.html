@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rencontres</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header>
+  <div class="barre-rouge">
+    <h1>Découverte des Profils</h1>
+  </div>
+</header>
+
+<main style="text-align: center; padding: 30px;">
+  <div id="profilContainer">
+    <img id="profilPhoto" src="" alt="Photo" style="width:200px; height:200px; border-radius: 50%; object-fit:cover;"><br><br>
+    <h2 id="profilNom">Nom</h2>
+    <p id="profilBio">Bio</p>
+    <button id="likeBtn" class="btn btn-primary">❤️ Like</button>
+    <button id="passBtn" class="btn btn-secondary">⏭️ Passer</button>
+  </div>
+  <p id="status" style="margin-top: 20px;"></p>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+  import { getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCncnRlcKPH_AATgGKGSRF4y-NB-qrytV0",
+    authDomain: "site-de-rencontre-burundais.firebaseapp.com",
+    projectId: "site-de-rencontre-burundais",
+    storageBucket: "site-de-rencontre-burundais.appspot.com",
+    messagingSenderId: "737249604208",
+    appId: "1:737249604208:web:be1b93908d82bfbacfbab5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUserId = null;
+  let profils = [];
+  let currentIndex = 0;
+
+  const nomEl = document.getElementById("profilNom");
+  const bioEl = document.getElementById("profilBio");
+  const photoEl = document.getElementById("profilPhoto");
+  const likeBtn = document.getElementById("likeBtn");
+  const passBtn = document.getElementById("passBtn");
+  const statusEl = document.getElementById("status");
+
+  function afficherProfil(index) {
+    if (index >= profils.length) {
+      nomEl.textContent = "Plus de profils 😕";
+      bioEl.textContent = "";
+      photoEl.src = "";
+      likeBtn.disabled = true;
+      passBtn.disabled = true;
+      return;
+    }
+    const profil = profils[index];
+    nomEl.textContent = profil.nom || "Nom inconnu";
+    bioEl.textContent = profil.bio || "Pas de bio.";
+    photoEl.src = profil.photo || "https://via.placeholder.com/200";
+  }
+
+  async function chargerProfils() {
+    const snapshot = await getDocs(collection(db, "users"));
+    profils = snapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(user => user.id !== currentUserId);
+    afficherProfil(currentIndex);
+  }
+
+  async function envoyerLike() {
+    const likedUser = profils[currentIndex];
+    const userDoc = doc(db, "users", currentUserId);
+    const likedDoc = doc(db, "users", likedUser.id);
+
+    // Ajouter dans la liste des likes
+    await updateDoc(userDoc, {
+      likes: arrayUnion(likedUser.id)
+    });
+
+    // Vérifier si l’autre utilisateur a aussi liké
+    const likedSnap = await getDoc(likedDoc);
+    const likedData = likedSnap.data();
+    if (likedData.likes && likedData.likes.includes(currentUserId)) {
+      // Match !
+      await updateDoc(userDoc, {
+        matches: arrayUnion(likedUser.id)
+      });
+      await updateDoc(likedDoc, {
+        matches: arrayUnion(currentUserId)
+      });
+      statusEl.textContent = "🎉 C'est un match avec " + (likedUser.nom || "quelqu’un") + " !";
+    } else {
+      statusEl.textContent = "Like envoyé à " + (likedUser.nom || "quelqu’un");
+    }
+
+    // Passer au suivant
+    currentIndex++;
+    afficherProfil(currentIndex);
+  }
+
+  likeBtn.addEventListener("click", envoyerLike);
+  passBtn.addEventListener("click", () => {
+    currentIndex++;
+    afficherProfil(currentIndex);
+    statusEl.textContent = "";
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUserId = user.uid;
+      chargerProfils();
+    } else {
+      window.location.href = "connexion.html";
+    }
+  });
+</script>
+
+</body>
+</html>
